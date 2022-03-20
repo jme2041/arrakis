@@ -1,0 +1,49 @@
+// arrakis.idl: Interface, CoClass, and Type Library Definitions for Arrakis
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+    object,
+    uuid(FDB559CA-A723-11EC-B743-DC41A9695036),
+    dual,
+    nonextensible,
+    pointer_default(unique),
+    helpstring("Person of Arrakis Interface")
+]
+interface IArrakeener : IDispatch
+{
+    [propget, id(1), helpstring("First Name")] HRESULT FirstName([out, retval] BSTR* pRet);
+    [propput, id(1), helpstring("First Name")] HRESULT FirstName([in] BSTR value);
+    [propget, id(2), helpstring("Last Name")] HRESULT LastName([out, retval] BSTR* pRet);
+    [propput, id(2), helpstring("Last Name")] HRESULT LastName([in] BSTR value);
+    [propget, id(3), helpstring("Affiliation (e.g., Landsraad house")] HRESULT Affiliation([out, retval] BSTR* pRet);
+    [propput, id(3), helpstring("Affiliation (e.g., Landsraad house")] HRESULT Affiliation([in] BSTR value);
+    [propget, id(4), helpstring("Occupation")] HRESULT Occupation([out, retval] BSTR* pRet);
+    [propput, id(4), helpstring("Occupation")] HRESULT Occupation([in] BSTR value);
+    [propget, id(5), helpstring("Energy available")] HRESULT Energy([out, retval] LONGLONG* pRet);
+    [propget, id(6), helpstring("Solaris available")] HRESULT Solaris([out, retval] LONGLONG* pRet);
+    [propget, id(7), helpstring("Spice available")] HRESULT Spice([out, retval] LONGLONG* pRet);
+    [id(8), helpstring("Eat some spice")] HRESULT EatSpice([in, defaultvalue(1)] LONGLONG units, [out, retval] LONGLONG* pDeltaEnergy);
+    [id(9), helpstring("Sell some spice")] HRESULT SellSpice([in, defaultvalue(1)] LONGLONG units, [out, retval] LONGLONG* pDeltaSolaris);
+    [id(10), helpstring("Mine some spice")] HRESULT MineSpice([in, defaultvalue(1)] LONGLONG harvesters, [out, retval] LONGLONG* pDeltaSpice);
+};
+
+[
+    uuid(FDB559CC-A723-11EC-B743-DC41A9695036),
+    version(1.0),
+    helpstring("Arrakis Type Library")
+]
+library ArrakisLib
+{
+    importlib("stdole32.tlb");
+
+    [
+        uuid(FDB559CB-A723-11EC-B743-DC41A9695036),
+        helpstring("Person of Arrakis")
+    ]
+    coclass Arrakeener
+    {
+        [default] interface IArrakeener;
+    };
+};

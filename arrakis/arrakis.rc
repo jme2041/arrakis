@@ -38,7 +38,7 @@ END
 
 3 TEXTINCLUDE 
 BEGIN
-    "\r\n"
+    "1 TYPELIB ""arrakis.tlb""\r\n"
     "\0"
 END
 
@@ -102,6 +102,12 @@ IDI_ICON1               ICON                    "JME.ico"
 STRINGTABLE
 BEGIN
     IDS_PROJNAME            "Arrakis"
+    IDS_OVERFLOW            "Integer overflow"
+    IDS_NONPOSSPICE         "Spice units must be greater than zero"
+    IDS_NOSPICE             "Insufficient spice"
+    IDS_NOENERGY            "Insufficient energy"
+    IDS_NOSOLARIS           "Insufficient solaris"
+    IDS_NOHARVESTER         "Cannot mine spice without a harvester"
 END
 
 #endif    // English (United States) resources
@@ -114,7 +120,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-
+1 TYPELIB "arrakis.tlb"
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
