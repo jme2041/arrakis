@@ -4,6 +4,10 @@
 #include "resource.h"
 #include <cassert>
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// COMPUTATIONS
+//
 
 // Generate a random number within the provided range
 
@@ -37,8 +41,10 @@ static bool safe_multiply(int64_t const a, int64_t const b, int64_t& prod)
     return true;
 }
 
-
-// Instance class for Arrakeener
+///////////////////////////////////////////////////////////////////////////////
+//
+// CArrakeener: Instance class for Arrakeener
+//
 
 CArrakeener::CArrakeener() : m_rc(0), m_pti(nullptr),
 m_energy(randrange(1, 100)), m_solaris(randrange(200000, 400000)), m_spice(0)
@@ -54,68 +60,74 @@ m_energy(randrange(1, 100)), m_solaris(randrange(200000, 400000)), m_spice(0)
     InitializeCriticalSection(&m_cs);
 }
 
+
 CArrakeener::~CArrakeener() noexcept
 {
     m_pti->Release();
     DeleteCriticalSection(&m_cs);
 }
 
+
 void CArrakeener::Lock() noexcept
 {
     EnterCriticalSection(&m_cs);
 }
+
 
 void CArrakeener::Unlock() noexcept
 {
     LeaveCriticalSection(&m_cs);
 }
 
+
 void CArrakeener::SetError(UINT id) noexcept
 {
-    Lock();
-
     ICreateErrorInfo* pcei = nullptr;
     HRESULT hr = CreateErrorInfo(&pcei);
-    if (SUCCEEDED(hr))
+    if (FAILED(hr)) return;
+
+    pcei->SetSource(const_cast<wchar_t*>(L"Arrakis.Arrakeener.1"));
+    pcei->SetGUID(IID_IArrakeener);
+
+    wchar_t buf[1024];
+    int cch = LoadStringW(GetModuleHandle(nullptr), id, buf, sizeof(buf) / sizeof(buf[0]));
+    if (cch > 0)
     {
-        pcei->SetSource(const_cast<wchar_t*>(L"Arrakis.Arrakeener"));
-        pcei->SetGUID(IID_IArrakeener);
-
-        wchar_t buf[1024];
-        int cch = LoadStringW(GetModuleHandle(nullptr), id, buf, sizeof(buf) / sizeof(buf[0]));
-        if (cch > 0)
-        {
-            assert(cch < sizeof(buf) / sizeof(buf[0]));
-            buf[cch + 1] = (wchar_t)0;
-            pcei->SetDescription(buf);
-        }
-        else
-        {
-            pcei->SetDescription(const_cast<wchar_t*>(L"Could not load resource string"));
-        }
-
-        IErrorInfo* pei = nullptr;
-        hr = pcei->QueryInterface(IID_IErrorInfo, (void**)&pei);
-        if (SUCCEEDED(hr))
-        {
-            SetErrorInfo(0, pei);
-            pei->Release();
-        }
-
-        pcei->Release();
+        assert(cch < sizeof(buf) / sizeof(buf[0]));
+        buf[cch + 1] = (wchar_t)0;
+        pcei->SetDescription(buf);
+    }
+    else
+    {
+        pcei->SetDescription(const_cast<wchar_t*>(L"Could not load resource string"));
     }
 
-    Unlock();
+    IErrorInfo* pei = nullptr;
+    hr = pcei->QueryInterface(IID_IErrorInfo, (void**)&pei);
+    if (SUCCEEDED(hr))
+    {
+        SetErrorInfo(0, pei);
+        pei->Release();
+    }
+
+    pcei->Release();
 }
+
 
 STDMETHODIMP CArrakeener::InterfaceSupportsErrorInfo(REFIID riid)
 {
     return riid == IID_IArrakeener ? S_OK : S_FALSE;
 }
 
+
 STDMETHODIMP CArrakeener::QueryInterface(REFIID riid, void** ppv)
 {
-    if (!ppv) return E_INVALIDARG;
+    // Note that this is an out-of process server
+    // When called by clients, ppv will always be checked against NULL by the
+    // universal marshaler, so a check is not needed in release builds.
+    // Hence, the use of assert instead of if(!ppv) return E_INVALIDARG
+
+    assert(ppv);
     if (riid == IID_IUnknown || riid == IID_IDispatch) *ppv = static_cast<IDispatch*>(this);
     else if (riid == IID_IArrakeener) *ppv = static_cast<IArrakeener*>(this);
     else if (riid == IID_ISupportErrorInfo) *ppv = static_cast<ISupportErrorInfo*>(this);
@@ -124,11 +136,13 @@ STDMETHODIMP CArrakeener::QueryInterface(REFIID riid, void** ppv)
     return S_OK;
 }
 
+
 STDMETHODIMP_(ULONG) CArrakeener::AddRef()
 {
     if (m_rc == 0) LockModule();
     return InterlockedIncrement(&m_rc);
 }
+
 
 STDMETHODIMP_(ULONG) CArrakeener::Release()
 {
@@ -141,26 +155,23 @@ STDMETHODIMP_(ULONG) CArrakeener::Release()
     return rc;
 }
 
+
 STDMETHODIMP CArrakeener::GetTypeInfoCount(UINT* pctinfo)
 {
     assert(pctinfo);
-    if (!pctinfo) return E_UNEXPECTED;
-
     *pctinfo = 1;
     return S_OK;
 }
 
+
 STDMETHODIMP CArrakeener::GetTypeInfo(UINT iTInfo, LCID lcid, ITypeInfo** ppTInfo)
 {
-    *ppTInfo = nullptr;
     assert(!iTInfo);
-    if (iTInfo) return E_UNEXPECTED;
     assert(ppTInfo);
-    if(!ppTInfo) return E_UNEXPECTED;
-
     (*ppTInfo = m_pti)->AddRef();
     return S_OK;
 }
+
 
 STDMETHODIMP CArrakeener::GetIDsOfNames(
     REFIID riid,
@@ -170,10 +181,9 @@ STDMETHODIMP CArrakeener::GetIDsOfNames(
     DISPID* rgDispId)
 {
     assert(riid == IID_NULL);
-    if (riid != IID_NULL) return DISP_E_UNKNOWNINTERFACE;
-
     return m_pti->GetIDsOfNames(rgszNames, cNames, rgDispId);
 }
+
 
 STDMETHODIMP CArrakeener::Invoke(
     DISPID dispIdMember,
@@ -186,8 +196,6 @@ STDMETHODIMP CArrakeener::Invoke(
     UINT* puArgErr)
 {
     assert(riid == IID_NULL);
-    if (riid != IID_NULL) return DISP_E_UNKNOWNINTERFACE;
-
     return m_pti->Invoke(
         static_cast<IDispatch*>(this),
         dispIdMember,
@@ -198,21 +206,18 @@ STDMETHODIMP CArrakeener::Invoke(
         puArgErr);
 }
 
+
 STDMETHODIMP CArrakeener::get_FirstName(BSTR* pRet)
 {
     HRESULT hr;
+    assert(pRet);
     Lock();
-
-    if (!pRet) hr = E_POINTER;
-    else
-    {
-        *pRet = SysAllocString(m_first_name.c_str());   // c_str is nothrow
-        hr = *pRet ? S_OK : E_OUTOFMEMORY;
-    }
-    
+    *pRet = SysAllocString(m_first_name.c_str());   // c_str is nothrow
+    hr = *pRet ? S_OK : E_OUTOFMEMORY;
     Unlock();
     return hr;
 }
+
 
 STDMETHODIMP CArrakeener::put_FirstName(BSTR value)
 {
@@ -237,21 +242,18 @@ STDMETHODIMP CArrakeener::put_FirstName(BSTR value)
     return hr;
 }
 
+
 STDMETHODIMP::CArrakeener::get_LastName(BSTR* pRet)
 {
     HRESULT hr;
+    assert(pRet);
     Lock();
-
-    if (!pRet) hr = E_POINTER;
-    else
-    {
-        *pRet = SysAllocString(m_last_name.c_str());
-        hr = *pRet ? S_OK : E_OUTOFMEMORY;
-    }
-
+    *pRet = SysAllocString(m_last_name.c_str());
+    hr = *pRet ? S_OK : E_OUTOFMEMORY;
     Unlock();
     return hr;
 }
+
 
 STDMETHODIMP CArrakeener::put_LastName(BSTR value)
 {
@@ -276,21 +278,18 @@ STDMETHODIMP CArrakeener::put_LastName(BSTR value)
     return hr;
 }
 
+
 STDMETHODIMP::CArrakeener::get_Affiliation(BSTR* pRet)
 {
     HRESULT hr;
+    assert(pRet);
     Lock();
-
-    if (!pRet) hr = E_POINTER;
-    else
-    {
-        *pRet = SysAllocString(m_affiliation.c_str());
-        hr = *pRet ? S_OK : E_OUTOFMEMORY;
-    }
-
+    *pRet = SysAllocString(m_affiliation.c_str());
+    hr = *pRet ? S_OK : E_OUTOFMEMORY;
     Unlock();
     return hr;
 }
+
 
 STDMETHODIMP CArrakeener::put_Affiliation(BSTR value)
 {
@@ -315,21 +314,18 @@ STDMETHODIMP CArrakeener::put_Affiliation(BSTR value)
     return hr;
 }
 
+
 STDMETHODIMP CArrakeener::get_Occupation(BSTR* pRet)
 {
     HRESULT hr;
+    assert(pRet);
     Lock();
-
-    if (!pRet) hr = E_POINTER;
-    else
-    {
-        *pRet = SysAllocString(m_occupation.c_str());
-        hr = *pRet ? S_OK : E_OUTOFMEMORY;
-    }
-
+    *pRet = SysAllocString(m_occupation.c_str());
+    hr = *pRet ? S_OK : E_OUTOFMEMORY;
     Unlock();
     return hr;
 }
+
 
 STDMETHODIMP CArrakeener::put_Occupation(BSTR value)
 {
@@ -354,57 +350,41 @@ STDMETHODIMP CArrakeener::put_Occupation(BSTR value)
     return hr;
 }
 
+
 STDMETHODIMP CArrakeener::get_Energy(LONGLONG* pRet)
 {
-    HRESULT hr;
+    assert(pRet);
     Lock();
-
-    if (!pRet) hr = E_POINTER;
-    else
-    {
-        *pRet = m_energy;
-        hr = S_OK;
-    }
-
+    *pRet = m_energy;
     Unlock();
-    return hr;
+    return S_OK;
 }
+
 
 STDMETHODIMP CArrakeener::get_Solaris(LONGLONG* pRet)
 {
-    HRESULT hr;
+    assert(pRet);
     Lock();
-
-    if (!pRet) hr = E_POINTER;
-    else
-    {
-        *pRet = m_solaris;
-        hr = S_OK;
-    }
-
+    *pRet = m_solaris;
     Unlock();
-    return hr;
+    return S_OK;
 }
+
 
 STDMETHODIMP CArrakeener::get_Spice(LONGLONG* pRet)
 {
-    HRESULT hr;
+    assert(pRet);
     Lock();
-
-    if (!pRet) hr = E_POINTER;
-    else
-    {
-        *pRet = m_spice;
-        hr = S_OK;
-    }
-
+    *pRet = m_spice;
     Unlock();
-    return hr;
+    return S_OK;
 }
+
 
 STDMETHODIMP CArrakeener::EatSpice(LONGLONG units, LONGLONG* pDeltaEnergy)
 {
     HRESULT hr;
+    assert(pDeltaEnergy);
     Lock();
     *pDeltaEnergy = 0;
 
@@ -449,15 +429,17 @@ STDMETHODIMP CArrakeener::EatSpice(LONGLONG units, LONGLONG* pDeltaEnergy)
     return hr;
 }
 
+
 STDMETHODIMP CArrakeener::SellSpice(LONGLONG units, LONGLONG* pDeltaSolaris)
 {
     HRESULT hr;
+    assert(pDeltaSolaris);
     Lock();
     *pDeltaSolaris = 0;
 
     if (units < 1)
     {
-        SetError(IDS_NEGSPICE);
+        SetError(IDS_NONPOSSPICE);
         hr = E_INVALIDARG;
     }
     else if (m_spice < units)
@@ -496,9 +478,11 @@ STDMETHODIMP CArrakeener::SellSpice(LONGLONG units, LONGLONG* pDeltaSolaris)
     return hr;
 }
 
+
 STDMETHODIMP CArrakeener::MineSpice(LONGLONG harvesters, LONGLONG* pDeltaSpice)
 {
     HRESULT hr;
+    assert(pDeltaSpice);
     Lock();
     *pDeltaSpice = 0;
 
@@ -557,8 +541,10 @@ STDMETHODIMP CArrakeener::MineSpice(LONGLONG harvesters, LONGLONG* pDeltaSpice)
     return hr;
 }
 
-
-// CoClass Arrakeener
+///////////////////////////////////////////////////////////////////////////////
+//
+// CArrakeenerClass: Class factory for Arrakeener
+//
 
 STDMETHODIMP CArrakeenerClass::QueryInterface(REFIID riid, void** ppv)
 {
@@ -583,46 +569,45 @@ STDMETHODIMP_(ULONG) CArrakeenerClass::Release()
 STDMETHODIMP CArrakeenerClass::CreateInstance(IUnknown* pUnkOuter, REFIID riid, void** ppv)
 {
     HRESULT hr;
+    assert(ppv);    // For out-of-process servers, this is never null
     LockModule();
     *ppv = nullptr;
-    if (!ppv) hr = E_INVALIDARG;
+
+    DWORD dw = WaitForSingleObject(g_done, 0);
+    if (dw == WAIT_OBJECT_0)
+    {
+        hr = CO_E_SERVER_STOPPING;
+    }
     else
     {
-        DWORD dw = WaitForSingleObject(g_done, 0);
-        if (dw == WAIT_OBJECT_0)
+        if (pUnkOuter)
         {
-            hr = CO_E_SERVER_STOPPING;
+            hr = CLASS_E_NOAGGREGATION;
         }
         else
         {
-            if (pUnkOuter)
+            try
             {
-                hr = CLASS_E_NOAGGREGATION;
+                CArrakeener* p = new CArrakeener;
+                p->AddRef();
+                hr = p->QueryInterface(riid, ppv);
+                p->Release();
             }
-            else
+            catch (std::bad_alloc&)
             {
-                try
-                {
-                    CArrakeener* p = new CArrakeener;
-                    p->AddRef();
-                    hr = p->QueryInterface(riid, ppv);
-                    p->Release();
-                }
-                catch (std::bad_alloc&)
-                {
-                    hr = E_OUTOFMEMORY;
-                }
-                catch (HRESULT& hr2)
-                {
-                    hr = hr2;
-                }
-                catch (...)
-                {
-                    hr = E_FAIL;
-                }
+                hr = E_OUTOFMEMORY;
+            }
+            catch (HRESULT& hr2)
+            {
+                hr = hr2;
+            }
+            catch (...)
+            {
+                hr = E_FAIL;
             }
         }
     }
+
     UnlockModule();
     return hr;
 }

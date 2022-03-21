@@ -5,7 +5,6 @@
 #define IDI_ICON1                       101
 #define IDS_PROJNAME                    102
 #define IDS_OVERFLOW                    103
-#define IDS_NEGSPICE                    104
 #define IDS_NONPOSSPICE                 104
 #define IDS_NOSPICE                     105
 #define IDS_NOENERGY                    106
