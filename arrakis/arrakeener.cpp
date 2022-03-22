@@ -46,8 +46,12 @@ static bool safe_multiply(int64_t const a, int64_t const b, int64_t& prod)
 // CArrakeener: Instance class for Arrakeener
 //
 
-CArrakeener::CArrakeener() : m_rc(0), m_pti(nullptr),
-m_energy(randrange(1, 100)), m_solaris(randrange(200000, 400000)), m_spice(0)
+CArrakeener::CArrakeener() :
+    m_rc(0),
+    m_pti(nullptr),
+    m_energy(randrange(1, 100)),
+    m_solaris(randrange(200000, 400000)),
+    m_spice(0)
 {
     ITypeLib* ptl = nullptr;
     HRESULT hr = LoadRegTypeLib(LIBID_ArrakisLib, 1, 0, 0, &ptl);
@@ -57,6 +61,22 @@ m_energy(randrange(1, 100)), m_solaris(randrange(200000, 400000)), m_spice(0)
     if (FAILED(hr)) throw hr;
     assert(m_pti);
 
+    InitializeCriticalSection(&m_cs);
+}
+
+
+CArrakeener::CArrakeener(const CArrakeener& obj) :
+    m_rc(0),
+    m_pti(obj.m_pti),
+    m_first_name(obj.m_first_name),
+    m_last_name(obj.m_last_name),
+    m_affiliation(obj.m_affiliation),
+    m_occupation(obj.m_occupation),
+    m_energy(obj.m_energy),
+    m_solaris(obj.m_solaris),
+    m_spice(obj.m_spice)
+{
+    m_pti->AddRef();
     InitializeCriticalSection(&m_cs);
 }
 
@@ -535,6 +555,34 @@ STDMETHODIMP CArrakeener::MineSpice(LONGLONG harvesters, LONGLONG* pDeltaSpice)
                 }
             }
         }
+    }
+
+    Unlock();
+    return hr;
+}
+
+
+STDMETHODIMP CArrakeener::Clone(IArrakeener** ppArrakeener)
+{
+    HRESULT hr;
+    assert(ppArrakeener);
+    Lock();
+    *ppArrakeener = nullptr;
+
+    try
+    {
+        CArrakeener* p = new CArrakeener(*this);
+        p->AddRef();
+        hr = p->QueryInterface(IID_IArrakeener, reinterpret_cast<void**>(ppArrakeener));
+        p->Release();
+    }
+    catch (std::bad_alloc&)
+    {
+        hr = E_OUTOFMEMORY;
+    }
+    catch (...)
+    {
+        hr = E_FAIL;
     }
 
     Unlock();

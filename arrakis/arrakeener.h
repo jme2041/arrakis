@@ -24,6 +24,8 @@ class CArrakeener : public IArrakeener, public ISupportErrorInfo
 
     void SetError(UINT id) noexcept;    // SetErrorInfo wrapper
 
+    CArrakeener(const CArrakeener& obj);
+
 public:
     CArrakeener();
     virtual ~CArrakeener() noexcept;
@@ -70,6 +72,7 @@ public:
     STDMETHODIMP EatSpice(LONGLONG units, LONGLONG* pDeltaEnergy) override;
     STDMETHODIMP SellSpice(LONGLONG units, LONGLONG* pDeltaSolaris) override;
     STDMETHODIMP MineSpice(LONGLONG harvesters, LONGLONG* pDeltaSpice) override;
+    STDMETHODIMP Clone(IArrakeener** ppArrakeener) override;
 };
 
 class CArrakeenerClass : public IClassFactory

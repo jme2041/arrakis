@@ -27,6 +27,7 @@ interface IArrakeener : IDispatch
     [id(8), helpstring("Eat some spice")] HRESULT EatSpice([in, defaultvalue(1)] LONGLONG units, [out, retval] LONGLONG* pDeltaEnergy);
     [id(9), helpstring("Sell some spice")] HRESULT SellSpice([in, defaultvalue(1)] LONGLONG units, [out, retval] LONGLONG* pDeltaSolaris);
     [id(10), helpstring("Mine some spice")] HRESULT MineSpice([in, defaultvalue(1)] LONGLONG harvesters, [out, retval] LONGLONG* pDeltaSpice);
+    [id(11), helpstring("Clone this person")] HRESULT Clone([out, retval] IArrakeener** ppArrakeener);
 };
 
 [
