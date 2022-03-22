@@ -10,6 +10,27 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace TestArrakis
 {
+    // Shim class for dealing with BSTRs as [in] parameters
+    // See Box (1998). Essential COM.
+
+    class _UBSTR {
+        BSTR m_bstr;
+    public:
+        _UBSTR(const wchar_t* pwsz) : m_bstr(SysAllocString(pwsz)) { }
+        operator BSTR(void) const { return m_bstr; }
+        ~_UBSTR() { SysFreeString(m_bstr); }
+    };
+
+    // Use this method to extract data from BSTR [out] parameters and free the BSTR
+    // Put the data into a fixed-length buffer to avoid std::bad_alloc
+
+    void extract_bstr(BSTR& bstr, size_t cch, wchar_t* const buf)
+    {
+        wcscpy_s(buf, cch, bstr ? bstr : L"");
+        SysFreeString(bstr);
+        bstr = nullptr;
+    }
+
     TEST_MODULE_INITIALIZE(ModuleInit)
     {
         APTTYPE at;
@@ -54,9 +75,13 @@ namespace TestArrakis
     {
         IArrakeener* arrakeener = nullptr;
 
-        void check_error_message(wchar_t const* expected)
+        void check_error_message(wchar_t const* expected) const
         {
             // This simulates how a client would extract error information
+            // Don't assert on the strings until the end to ensure interface pointers are released
+
+            wchar_t source[1024], description[1024];
+
             ISupportErrorInfo* psei = nullptr;
             HRESULT hr = arrakeener->QueryInterface(IID_ISupportErrorInfo, (void**)&psei);
             if (SUCCEEDED(hr))
@@ -65,26 +90,24 @@ namespace TestArrakis
                 hr = GetErrorInfo(0, &pei);
                 if (SUCCEEDED(hr))
                 {
-                    BSTR source = nullptr, description = nullptr;
+                    BSTR bstr;
 
-                    pei->GetSource(&source);
-                    Assert::IsTrue(SUCCEEDED(hr));
-                    Assert::AreEqual(L"Arrakis.Arrakeener.1", source);
+                    pei->GetSource(&bstr);
+                    extract_bstr(bstr, sizeof(source) / sizeof(source[0]), source);
 
-                    pei->GetDescription(&description);
-                    Assert::IsTrue(SUCCEEDED(hr));
-                    Assert::AreEqual(expected, description);
+                    pei->GetDescription(&bstr);
+                    extract_bstr(bstr, sizeof(description) / sizeof(description[0]), description);
 
-                    SysFreeString(source);
-                    SysFreeString(description);
                     pei->Release();
                 }
                 psei->Release();
             }
             Assert::IsTrue(SUCCEEDED(hr));
+            Assert::AreEqual(L"Arrakis.Arrakeener.1", source);
+            Assert::AreEqual(expected, description);
         }
 
-        void check_energy(LONGLONG expected)
+        void check_energy(LONGLONG expected) const
         {
             LONGLONG energy;
             HRESULT hr = arrakeener->get_Energy(&energy);
@@ -92,7 +115,7 @@ namespace TestArrakis
             Assert::AreEqual(expected, energy);
         }
 
-        void check_solaris(LONGLONG expected)
+        void check_solaris(LONGLONG expected) const
         {
             LONGLONG solaris;
             HRESULT hr = arrakeener->get_Solaris(&solaris);
@@ -100,7 +123,7 @@ namespace TestArrakis
             Assert::AreEqual(expected, solaris);
         }
 
-        void check_spice(LONGLONG expected)
+        void check_spice(LONGLONG expected) const
         {
             LONGLONG spice;
             HRESULT hr = arrakeener->get_Spice(&spice);
@@ -124,122 +147,114 @@ namespace TestArrakis
 
         TEST_METHOD(FirstName)
         {
+            BSTR bstr;
+            wchar_t buf[1024];
+            size_t cch = sizeof(buf) / sizeof(buf[0]);
+
             HRESULT hr = arrakeener->get_FirstName(nullptr);
             Assert::IsTrue(FAILED(hr));
 
-            BSTR bstr;
             hr = arrakeener->get_FirstName(&bstr);
-            Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(L"", bstr);
-            SysFreeString(bstr);
+            extract_bstr(bstr, cch, buf);
+            Assert::AreEqual(L"", buf);
 
-            bstr = SysAllocString(L"Paul");
-            hr = arrakeener->put_FirstName(bstr);
+            hr = arrakeener->put_FirstName(_UBSTR(L"Paul"));
             Assert::IsTrue(SUCCEEDED(hr));
-            SysFreeString(bstr);
 
             hr = arrakeener->get_FirstName(&bstr);
-            Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(L"Paul", bstr);
-            SysFreeString(bstr);
+            extract_bstr(bstr, cch, buf);
+            Assert::AreEqual(L"Paul", buf);
 
             hr = arrakeener->put_FirstName(nullptr);
             Assert::IsTrue(SUCCEEDED(hr));
 
             hr = arrakeener->get_FirstName(&bstr);
-            Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(L"", bstr);
-            SysFreeString(bstr);
+            extract_bstr(bstr, cch, buf);
+            Assert::AreEqual(L"", buf);
         }
 
         TEST_METHOD(LastName)
         {
+            BSTR bstr;
+            wchar_t buf[1024];
+            size_t cch = sizeof(buf) / sizeof(buf[0]);
+
             HRESULT hr = arrakeener->get_LastName(nullptr);
             Assert::IsTrue(FAILED(hr));
 
-            BSTR bstr;
             hr = arrakeener->get_LastName(&bstr);
-            Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(L"", bstr);
-            SysFreeString(bstr);
+            extract_bstr(bstr, cch, buf);
+            Assert::AreEqual(L"", buf);
 
-            bstr = SysAllocString(L"Atreides");
-            hr = arrakeener->put_LastName(bstr);
+            hr = arrakeener->put_LastName(_UBSTR(L"Atreides"));
             Assert::IsTrue(SUCCEEDED(hr));
-            SysFreeString(bstr);
 
             hr = arrakeener->get_LastName(&bstr);
-            Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(L"Atreides", bstr);
-            SysFreeString(bstr);
+            extract_bstr(bstr, cch, buf);
+            Assert::AreEqual(L"Atreides", buf);
 
             hr = arrakeener->put_LastName(nullptr);
             Assert::IsTrue(SUCCEEDED(hr));
 
             hr = arrakeener->get_LastName(&bstr);
-            Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(L"", bstr);
-            SysFreeString(bstr);
+            extract_bstr(bstr, cch, buf);
+            Assert::AreEqual(L"", buf);
         }
 
         TEST_METHOD(Affiliation)
         {
+            BSTR bstr;
+            wchar_t buf[1024];
+            size_t cch = sizeof(buf) / sizeof(buf[0]);
+
             HRESULT hr = arrakeener->get_Affiliation(nullptr);
             Assert::IsTrue(FAILED(hr));
 
-            BSTR bstr;
             hr = arrakeener->get_Affiliation(&bstr);
-            Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(L"", bstr);
-            SysFreeString(bstr);
+            extract_bstr(bstr, cch, buf);
+            Assert::AreEqual(L"", buf);
 
-            bstr = SysAllocString(L"House Atreides");
-            hr = arrakeener->put_Affiliation(bstr);
+            hr = arrakeener->put_Affiliation(_UBSTR(L"House Atreides"));
             Assert::IsTrue(SUCCEEDED(hr));
-            SysFreeString(bstr);
 
             hr = arrakeener->get_Affiliation(&bstr);
-            Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(L"House Atreides", bstr);
-            SysFreeString(bstr);
+            extract_bstr(bstr, cch, buf);
+            Assert::AreEqual(L"House Atreides", buf);
 
             hr = arrakeener->put_Affiliation(nullptr);
             Assert::IsTrue(SUCCEEDED(hr));
 
             hr = arrakeener->get_Affiliation(&bstr);
-            Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(L"", bstr);
-            SysFreeString(bstr);
+            extract_bstr(bstr, cch, buf);
+            Assert::AreEqual(L"", buf);
         }
 
         TEST_METHOD(Occupation)
         {
+            BSTR bstr;
+            wchar_t buf[1024];
+            size_t cch = sizeof(buf) / sizeof(buf[0]);
+
             HRESULT hr = arrakeener->get_Occupation(nullptr);
             Assert::IsTrue(FAILED(hr));
 
-            BSTR bstr;
             hr = arrakeener->get_Occupation(&bstr);
-            Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(L"", bstr);
-            SysFreeString(bstr);
+            extract_bstr(bstr, cch, buf);
+            Assert::AreEqual(L"", buf);
 
-            bstr = SysAllocString(L"Kwisatz Haderach");
-            hr = arrakeener->put_Occupation(bstr);
+            hr = arrakeener->put_Occupation(_UBSTR(L"Kwisatz Haderach"));
             Assert::IsTrue(SUCCEEDED(hr));
-            SysFreeString(bstr);
 
             hr = arrakeener->get_Occupation(&bstr);
-            Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(L"Kwisatz Haderach", bstr);
-            SysFreeString(bstr);
+            extract_bstr(bstr, cch, buf);
+            Assert::AreEqual(L"Kwisatz Haderach", buf);
 
             hr = arrakeener->put_Occupation(nullptr);
             Assert::IsTrue(SUCCEEDED(hr));
 
             hr = arrakeener->get_Occupation(&bstr);
-            Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(L"", bstr);
-            SysFreeString(bstr);
+            extract_bstr(bstr, cch, buf);
+            Assert::AreEqual(L"", buf);
         }
 
         TEST_METHOD(InitialEnergy)
