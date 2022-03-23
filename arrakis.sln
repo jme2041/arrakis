@@ -7,7 +7,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "arrakis", "arrakis\arrakis.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestArrakis", "TestArrakis\TestArrakis.vcxproj", "{52800F39-5987-4195-ADF6-5189CFCE23F6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestArrakisCS", "TestArrakisCS\TestArrakisCS.csproj", "{06044BD9-44D1-44FC-9213-1694A72D06AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestArrakisCS", "TestArrakisCS\TestArrakisCS.csproj", "{06044BD9-44D1-44FC-9213-1694A72D06AA}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "TestArrakisPy", "TestArrakisPy\TestArrakisPy.pyproj", "{854A9254-6C2A-4193-BEBD-986E4D51DE44}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +57,12 @@ Global
 		{06044BD9-44D1-44FC-9213-1694A72D06AA}.Release|x64.Build.0 = Release|Any CPU
 		{06044BD9-44D1-44FC-9213-1694A72D06AA}.Release|x86.ActiveCfg = Release|Any CPU
 		{06044BD9-44D1-44FC-9213-1694A72D06AA}.Release|x86.Build.0 = Release|Any CPU
+		{854A9254-6C2A-4193-BEBD-986E4D51DE44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{854A9254-6C2A-4193-BEBD-986E4D51DE44}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{854A9254-6C2A-4193-BEBD-986E4D51DE44}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{854A9254-6C2A-4193-BEBD-986E4D51DE44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{854A9254-6C2A-4193-BEBD-986E4D51DE44}.Release|x64.ActiveCfg = Release|Any CPU
+		{854A9254-6C2A-4193-BEBD-986E4D51DE44}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

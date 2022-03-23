@@ -1,3 +1,6 @@
+// TestArrakis.cs: C# unit tests
+// Add the Arrakis type library to the C# project as a COM reference
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Arrakis;
 
@@ -109,6 +112,10 @@ namespace TestArrakisCS
                 Assert.Fail("The wrong exception was thrown");
             }
 
+            Assert.AreEqual(energy, Paul.Energy);
+            Assert.AreEqual(solaris, Paul.Solaris);
+            Assert.AreEqual(spice, Paul.Spice);
+
             // Sell half of our spice
             delta_spice = spice / 2;
             long delta_solaris = Paul.SellSpice(delta_spice);
@@ -187,6 +194,11 @@ namespace TestArrakisCS
             Assert.AreEqual(Duncan.LastName, Ghola.LastName);
             Assert.AreEqual(Duncan.Affiliation, Ghola.Affiliation);
             Assert.AreNotEqual(Duncan.Occupation, Ghola.Occupation);
+
+            // Switching an attribute in Duncan's alias switches it in Duncan but not the Ghola
+            Alias.Occupation = "Ambassador to the Fremen";
+            Assert.AreEqual(Duncan.Occupation, "Ambassador to the Fremen");
+            Assert.AreEqual(Ghola.Occupation, "Ghola");
         }
     }
 }
