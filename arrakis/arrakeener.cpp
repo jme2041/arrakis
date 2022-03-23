@@ -54,7 +54,7 @@ CArrakeener::CArrakeener() :
     m_spice(0)
 {
     ITypeLib* ptl = nullptr;
-    HRESULT hr = LoadRegTypeLib(LIBID_ArrakisLib, 1, 0, 0, &ptl);
+    HRESULT hr = LoadRegTypeLib(LIBID_Arrakis, 1, 0, 0, &ptl);
     if(FAILED(hr)) throw hr;
     hr = ptl->GetTypeInfoOfGuid(IID_IArrakeener, &m_pti);
     ptl->Release();

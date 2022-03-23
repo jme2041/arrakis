@@ -7,30 +7,54 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "arrakis", "arrakis\arrakis.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestArrakis", "TestArrakis\TestArrakis.vcxproj", "{52800F39-5987-4195-ADF6-5189CFCE23F6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestArrakisCS", "TestArrakisCS\TestArrakisCS.csproj", "{06044BD9-44D1-44FC-9213-1694A72D06AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{581A1691-383B-4FDE-97BA-6A355A5AC1A5}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{581A1691-383B-4FDE-97BA-6A355A5AC1A5}.Debug|Any CPU.Build.0 = Debug|x64
 		{581A1691-383B-4FDE-97BA-6A355A5AC1A5}.Debug|x64.ActiveCfg = Debug|x64
 		{581A1691-383B-4FDE-97BA-6A355A5AC1A5}.Debug|x64.Build.0 = Debug|x64
 		{581A1691-383B-4FDE-97BA-6A355A5AC1A5}.Debug|x86.ActiveCfg = Debug|Win32
 		{581A1691-383B-4FDE-97BA-6A355A5AC1A5}.Debug|x86.Build.0 = Debug|Win32
+		{581A1691-383B-4FDE-97BA-6A355A5AC1A5}.Release|Any CPU.ActiveCfg = Release|x64
+		{581A1691-383B-4FDE-97BA-6A355A5AC1A5}.Release|Any CPU.Build.0 = Release|x64
 		{581A1691-383B-4FDE-97BA-6A355A5AC1A5}.Release|x64.ActiveCfg = Release|x64
 		{581A1691-383B-4FDE-97BA-6A355A5AC1A5}.Release|x64.Build.0 = Release|x64
 		{581A1691-383B-4FDE-97BA-6A355A5AC1A5}.Release|x86.ActiveCfg = Release|Win32
 		{581A1691-383B-4FDE-97BA-6A355A5AC1A5}.Release|x86.Build.0 = Release|Win32
+		{52800F39-5987-4195-ADF6-5189CFCE23F6}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{52800F39-5987-4195-ADF6-5189CFCE23F6}.Debug|Any CPU.Build.0 = Debug|x64
 		{52800F39-5987-4195-ADF6-5189CFCE23F6}.Debug|x64.ActiveCfg = Debug|x64
 		{52800F39-5987-4195-ADF6-5189CFCE23F6}.Debug|x64.Build.0 = Debug|x64
 		{52800F39-5987-4195-ADF6-5189CFCE23F6}.Debug|x86.ActiveCfg = Debug|Win32
 		{52800F39-5987-4195-ADF6-5189CFCE23F6}.Debug|x86.Build.0 = Debug|Win32
+		{52800F39-5987-4195-ADF6-5189CFCE23F6}.Release|Any CPU.ActiveCfg = Release|x64
+		{52800F39-5987-4195-ADF6-5189CFCE23F6}.Release|Any CPU.Build.0 = Release|x64
 		{52800F39-5987-4195-ADF6-5189CFCE23F6}.Release|x64.ActiveCfg = Release|x64
 		{52800F39-5987-4195-ADF6-5189CFCE23F6}.Release|x64.Build.0 = Release|x64
 		{52800F39-5987-4195-ADF6-5189CFCE23F6}.Release|x86.ActiveCfg = Release|Win32
 		{52800F39-5987-4195-ADF6-5189CFCE23F6}.Release|x86.Build.0 = Release|Win32
+		{06044BD9-44D1-44FC-9213-1694A72D06AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06044BD9-44D1-44FC-9213-1694A72D06AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06044BD9-44D1-44FC-9213-1694A72D06AA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{06044BD9-44D1-44FC-9213-1694A72D06AA}.Debug|x64.Build.0 = Debug|Any CPU
+		{06044BD9-44D1-44FC-9213-1694A72D06AA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{06044BD9-44D1-44FC-9213-1694A72D06AA}.Debug|x86.Build.0 = Debug|Any CPU
+		{06044BD9-44D1-44FC-9213-1694A72D06AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06044BD9-44D1-44FC-9213-1694A72D06AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06044BD9-44D1-44FC-9213-1694A72D06AA}.Release|x64.ActiveCfg = Release|Any CPU
+		{06044BD9-44D1-44FC-9213-1694A72D06AA}.Release|x64.Build.0 = Release|Any CPU
+		{06044BD9-44D1-44FC-9213-1694A72D06AA}.Release|x86.ActiveCfg = Release|Any CPU
+		{06044BD9-44D1-44FC-9213-1694A72D06AA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

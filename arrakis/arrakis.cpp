@@ -42,12 +42,12 @@ STDAPI UnregisterServer(bool user)
     HKEY regroot;
     if (user)
     {
-        hr = UnRegisterTypeLibForUser(LIBID_ArrakisLib, 1, 0, 0, SYS_WIN64);
+        hr = UnRegisterTypeLibForUser(LIBID_Arrakis, 1, 0, 0, SYS_WIN64);
         regroot = HKEY_CURRENT_USER;
     }
     else
     {
-        hr = UnRegisterTypeLib(LIBID_ArrakisLib, 1, 0, 0, SYS_WIN64);
+        hr = UnRegisterTypeLib(LIBID_Arrakis, 1, 0, 0, SYS_WIN64);
         regroot = HKEY_LOCAL_MACHINE;
     }
 

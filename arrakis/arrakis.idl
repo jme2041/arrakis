@@ -35,7 +35,7 @@ interface IArrakeener : IDispatch
     version(1.0),
     helpstring("Arrakis Type Library")
 ]
-library ArrakisLib
+library Arrakis
 {
     importlib("stdole32.tlb");
 
