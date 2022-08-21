@@ -11,6 +11,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestArrakisCS", "TestArraki
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "TestArrakisPy", "TestArrakisPy\TestArrakisPy.pyproj", "{854A9254-6C2A-4193-BEBD-986E4D51DE44}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "submodules", "submodules", "{196A5A46-783A-4733-B28F-54EED923E3C6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{A387753C-7DFD-46FC-BD40-058189A151EC}"
+	ProjectSection(SolutionItems) = preProject
+		iptr\include\iptr.h = iptr\include\iptr.h
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,6 +73,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A387753C-7DFD-46FC-BD40-058189A151EC} = {196A5A46-783A-4733-B28F-54EED923E3C6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B2FF9C64-C10C-434B-9C68-3296BEAC0B4E}
