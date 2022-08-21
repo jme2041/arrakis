@@ -3,8 +3,9 @@
 
 #include "pch.h"
 #include "CppUnitTest.h"
-#include "..\arrakis\arrakis_h.h"
-#include "..\arrakis\arrakis_i.c"
+#include "arrakis_h.h"
+#include "arrakis_i.c"
+#include <iptr.h>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -16,20 +17,22 @@ namespace TestArrakis
     class _UBSTR {
         BSTR m_bstr;
     public:
+        _UBSTR() : m_bstr(nullptr) { }
         _UBSTR(const wchar_t* pwsz) : m_bstr(SysAllocString(pwsz)) { }
-        operator BSTR(void) const { return m_bstr; }
         ~_UBSTR() { SysFreeString(m_bstr); }
+        operator BSTR() const noexcept { return m_bstr; }
+        explicit operator bool() const noexcept { return m_bstr != nullptr; }
+
+        friend BSTR* set(_UBSTR& obj)
+        {
+            if (obj.m_bstr)
+            {
+                SysFreeString(obj.m_bstr);
+                obj.m_bstr = nullptr;
+            }
+            return &obj.m_bstr;
+        }
     };
-
-    // Use this method to extract data from BSTR [out] parameters and free the BSTR
-    // Put the data into a fixed-length buffer to avoid std::bad_alloc
-
-    void extract_bstr(BSTR& bstr, size_t cch, wchar_t* const buf)
-    {
-        wcscpy_s(buf, cch, bstr ? bstr : L"");
-        SysFreeString(bstr);
-        bstr = nullptr;
-    }
 
     TEST_MODULE_INITIALIZE(ModuleInit)
     {
@@ -73,16 +76,18 @@ namespace TestArrakis
 
     TEST_CLASS(TestArrakeener)
     {
-        IArrakeener* arrakeener = nullptr;
-        IArrakeener* ghola = nullptr;
+        IPtr<IArrakeener> arrakeener;
+        IPtr<IArrakeener> ghola;
 
         void check_error_message(wchar_t const* expected) const
         {
             // This simulates how a client would extract error information
             // Don't assert on the strings until the end to ensure interface pointers are released
 
-            const size_t cch = 1024;
-            wchar_t source[cch], description[cch];
+            //const size_t cch = 1024;
+            //wchar_t source[cch], description[cch];
+            _UBSTR source;
+            _UBSTR description;
 
             ISupportErrorInfo* psei = nullptr;
             HRESULT hr = arrakeener->QueryInterface(IID_ISupportErrorInfo, (void**)&psei);
@@ -92,13 +97,11 @@ namespace TestArrakis
                 hr = GetErrorInfo(0, &pei);
                 if (SUCCEEDED(hr))
                 {
-                    BSTR bstr;
+                    pei->GetSource(set(source));
+                    Assert::IsTrue(source);
 
-                    pei->GetSource(&bstr);
-                    extract_bstr(bstr, cch, source);
-
-                    pei->GetDescription(&bstr);
-                    extract_bstr(bstr, cch, description);
+                    pei->GetDescription(set(description));
+                    Assert::IsTrue(description);
 
                     pei->Release();
                 }
@@ -137,127 +140,101 @@ namespace TestArrakis
 
         TEST_METHOD_INITIALIZE(CreateArrakeener)
         {
-            HRESULT hr = CoCreateInstance(CLSID_Arrakeener, nullptr, CLSCTX_ALL, IID_IArrakeener, (void**)&arrakeener);
+            HRESULT hr = CoCreateInstance(CLSID_Arrakeener, nullptr, CLSCTX_ALL, IID_IArrakeener, (void**)set(arrakeener));
             Assert::IsTrue(SUCCEEDED(hr));
-            Assert::IsNotNull(arrakeener);
-        }
-
-        TEST_METHOD_CLEANUP(ReleaseArrakeener)
-        {
-            if (arrakeener) arrakeener->Release();
-            if (ghola) ghola->Release();
+            Assert::IsTrue((bool)arrakeener);
         }
 
         TEST_METHOD(FirstName)
         {
-            BSTR bstr;
-            const size_t cch = 1024;
-            wchar_t buf[cch];
+            _UBSTR bstr;
 
             HRESULT hr = arrakeener->get_FirstName(nullptr);
             Assert::IsTrue(FAILED(hr));
 
-            hr = arrakeener->get_FirstName(&bstr);
-            extract_bstr(bstr, cch, buf);
-            Assert::AreEqual(L"", buf);
+            hr = arrakeener->get_FirstName(set(bstr));
+            Assert::AreEqual(L"", bstr);
 
             hr = arrakeener->put_FirstName(_UBSTR(L"Paul"));
             Assert::IsTrue(SUCCEEDED(hr));
 
-            hr = arrakeener->get_FirstName(&bstr);
-            extract_bstr(bstr, cch, buf);
-            Assert::AreEqual(L"Paul", buf);
+            hr = arrakeener->get_FirstName(set(bstr));
+            Assert::AreEqual(L"Paul", bstr);
 
             hr = arrakeener->put_FirstName(nullptr);
             Assert::IsTrue(SUCCEEDED(hr));
 
-            hr = arrakeener->get_FirstName(&bstr);
-            extract_bstr(bstr, cch, buf);
-            Assert::AreEqual(L"", buf);
+            hr = arrakeener->get_FirstName(set(bstr));
+            Assert::AreEqual(L"", bstr);
         }
 
         TEST_METHOD(LastName)
         {
-            BSTR bstr;
-            const size_t cch = 1024;
-            wchar_t buf[cch];
+            _UBSTR bstr;
 
             HRESULT hr = arrakeener->get_LastName(nullptr);
             Assert::IsTrue(FAILED(hr));
 
-            hr = arrakeener->get_LastName(&bstr);
-            extract_bstr(bstr, cch, buf);
-            Assert::AreEqual(L"", buf);
+            hr = arrakeener->get_LastName(set(bstr));
+            Assert::AreEqual(L"", bstr);
 
             hr = arrakeener->put_LastName(_UBSTR(L"Atreides"));
             Assert::IsTrue(SUCCEEDED(hr));
 
-            hr = arrakeener->get_LastName(&bstr);
-            extract_bstr(bstr, cch, buf);
-            Assert::AreEqual(L"Atreides", buf);
+            hr = arrakeener->get_LastName(set(bstr));
+            Assert::AreEqual(L"Atreides", bstr);
 
             hr = arrakeener->put_LastName(nullptr);
             Assert::IsTrue(SUCCEEDED(hr));
 
-            hr = arrakeener->get_LastName(&bstr);
-            extract_bstr(bstr, cch, buf);
-            Assert::AreEqual(L"", buf);
+            hr = arrakeener->get_LastName(set(bstr));
+            Assert::AreEqual(L"", bstr);
         }
 
         TEST_METHOD(Affiliation)
         {
-            BSTR bstr;
-            const size_t cch = 1024;
-            wchar_t buf[cch];
+            _UBSTR bstr;
 
             HRESULT hr = arrakeener->get_Affiliation(nullptr);
             Assert::IsTrue(FAILED(hr));
 
-            hr = arrakeener->get_Affiliation(&bstr);
-            extract_bstr(bstr, cch, buf);
-            Assert::AreEqual(L"", buf);
+            hr = arrakeener->get_Affiliation(set(bstr));
+            Assert::AreEqual(L"", bstr);
 
             hr = arrakeener->put_Affiliation(_UBSTR(L"House Atreides"));
             Assert::IsTrue(SUCCEEDED(hr));
 
-            hr = arrakeener->get_Affiliation(&bstr);
-            extract_bstr(bstr, cch, buf);
-            Assert::AreEqual(L"House Atreides", buf);
+            hr = arrakeener->get_Affiliation(set(bstr));
+            Assert::AreEqual(L"House Atreides", bstr);
 
             hr = arrakeener->put_Affiliation(nullptr);
             Assert::IsTrue(SUCCEEDED(hr));
 
-            hr = arrakeener->get_Affiliation(&bstr);
-            extract_bstr(bstr, cch, buf);
-            Assert::AreEqual(L"", buf);
+            hr = arrakeener->get_Affiliation(set(bstr));
+            Assert::AreEqual(L"", bstr);
         }
 
         TEST_METHOD(Occupation)
         {
-            BSTR bstr;
-            const size_t cch = 1024;
-            wchar_t buf[cch];
+            _UBSTR bstr;
 
             HRESULT hr = arrakeener->get_Occupation(nullptr);
             Assert::IsTrue(FAILED(hr));
 
-            hr = arrakeener->get_Occupation(&bstr);
-            extract_bstr(bstr, cch, buf);
-            Assert::AreEqual(L"", buf);
+            hr = arrakeener->get_Occupation(set(bstr));
+            Assert::AreEqual(L"", bstr);
 
             hr = arrakeener->put_Occupation(_UBSTR(L"Kwisatz Haderach"));
             Assert::IsTrue(SUCCEEDED(hr));
 
-            hr = arrakeener->get_Occupation(&bstr);
-            extract_bstr(bstr, cch, buf);
-            Assert::AreEqual(L"Kwisatz Haderach", buf);
+            hr = arrakeener->get_Occupation(set(bstr));
+            Assert::AreEqual(L"Kwisatz Haderach", bstr);
 
             hr = arrakeener->put_Occupation(nullptr);
             Assert::IsTrue(SUCCEEDED(hr));
 
-            hr = arrakeener->get_Occupation(&bstr);
-            extract_bstr(bstr, cch, buf);
-            Assert::AreEqual(L"", buf);
+            hr = arrakeener->get_Occupation(set(bstr));
+            Assert::AreEqual(L"", bstr);
         }
 
         TEST_METHOD(InitialEnergy)
@@ -411,9 +388,8 @@ namespace TestArrakis
 
         TEST_METHOD(Clone)
         {
-            BSTR bstr;
-            const size_t cch = 1024;
-            wchar_t buf1[cch], buf2[cch];
+            _UBSTR bstr1;
+            _UBSTR bstr2;
             HRESULT hr;
 
             hr = arrakeener->put_FirstName(_UBSTR(L"Duncan"));
@@ -428,82 +404,64 @@ namespace TestArrakis
             // Create an alias of Duncan
             // This just copies the pointer, not the data
             // It is the same Duncan
-            // Note that we dont AddRef() p because its lifespan is
-            // contained within the lifespan of arrakeener
-            IArrakeener* p = arrakeener;
+            IPtr<IArrakeener> p = arrakeener;
 
             // Create a copy of Duncan
-            hr = arrakeener->Clone(&ghola);
+            hr = arrakeener->Clone(set(ghola));
             Assert::IsTrue(SUCCEEDED(hr));
 
             hr = ghola->put_Occupation(_UBSTR(L"Ghola"));
             Assert::IsTrue(SUCCEEDED(hr));
 
             // Compare data between Duncan and his alias
-            hr = arrakeener->get_FirstName(&bstr);
-            extract_bstr(bstr, cch, buf1);
+            hr = arrakeener->get_FirstName(set(bstr1));
             Assert::IsTrue(SUCCEEDED(hr));
-            hr = p->get_FirstName(&bstr);
-            extract_bstr(bstr, cch, buf2);
+            hr = p->get_FirstName(set(bstr2));
             Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(buf1, buf2);
+            Assert::AreEqual(std::wstring(bstr1), std::wstring(bstr2));
 
-            hr = arrakeener->get_LastName(&bstr);
-            extract_bstr(bstr, cch, buf1);
+            hr = arrakeener->get_LastName(set(bstr1));
             Assert::IsTrue(SUCCEEDED(hr));
-            hr = p->get_LastName(&bstr);
-            extract_bstr(bstr, cch, buf2);
+            hr = p->get_LastName(set(bstr2));
             Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(buf1, buf2);
+            Assert::AreEqual(std::wstring(bstr1), std::wstring(bstr2));
 
-            hr = arrakeener->get_Affiliation(&bstr);
-            extract_bstr(bstr, cch, buf1);
+            hr = arrakeener->get_Affiliation(set(bstr1));
             Assert::IsTrue(SUCCEEDED(hr));
-            hr = p->get_Affiliation(&bstr);
-            extract_bstr(bstr, cch, buf2);
+            hr = p->get_Affiliation(set(bstr2));
             Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(buf1, buf2);
+            Assert::AreEqual(std::wstring(bstr1), std::wstring(bstr2));
 
-            hr = arrakeener->get_Occupation(&bstr);
-            extract_bstr(bstr, cch, buf1);
+            hr = arrakeener->get_Occupation(set(bstr1));
             Assert::IsTrue(SUCCEEDED(hr));
-            hr = p->get_Occupation(&bstr);
-            extract_bstr(bstr, cch, buf2);
+            hr = p->get_Occupation(set(bstr2));
             Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(buf1, buf2);
+            Assert::AreEqual(std::wstring(bstr1), std::wstring(bstr2));
 
             // Compare data between Duncan and his Ghola
-            hr = arrakeener->get_FirstName(&bstr);
-            extract_bstr(bstr, cch, buf1);
+            hr = arrakeener->get_FirstName(set(bstr1));
             Assert::IsTrue(SUCCEEDED(hr));
-            hr = ghola->get_FirstName(&bstr);
-            extract_bstr(bstr, cch, buf2);
+            hr = ghola->get_FirstName(set(bstr2));
             Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(buf1, buf2);
+            Assert::AreEqual(std::wstring(bstr1), std::wstring(bstr2));
 
-            hr = arrakeener->get_LastName(&bstr);
-            extract_bstr(bstr, cch, buf1);
+            hr = arrakeener->get_LastName(set(bstr1));
             Assert::IsTrue(SUCCEEDED(hr));
-            hr = ghola->get_LastName(&bstr);
-            extract_bstr(bstr, cch, buf2);
+            hr = ghola->get_LastName(set(bstr2));
             Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(buf1, buf2);
+            Assert::AreEqual(std::wstring(bstr1), std::wstring(bstr2));
 
-            hr = arrakeener->get_Affiliation(&bstr);
-            extract_bstr(bstr, cch, buf1);
+            hr = arrakeener->get_Affiliation(set(bstr1));
             Assert::IsTrue(SUCCEEDED(hr));
-            hr = ghola->get_Affiliation(&bstr);
-            extract_bstr(bstr, cch, buf2);
+            hr = ghola->get_Affiliation(set(bstr2));
             Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreEqual(buf1, buf2);
+            Assert::AreEqual(std::wstring(bstr1), std::wstring(bstr2));
 
-            hr = arrakeener->get_Occupation(&bstr);
-            extract_bstr(bstr, cch, buf1);
+            hr = arrakeener->get_Occupation(set(bstr1));
             Assert::IsTrue(SUCCEEDED(hr));
-            hr = ghola->get_Occupation(&bstr);
-            extract_bstr(bstr, cch, buf2);
+            hr = ghola->get_Occupation(set(bstr2));
             Assert::IsTrue(SUCCEEDED(hr));
-            Assert::AreNotEqual(buf1, buf2);
+            Assert::AreNotEqual(std::wstring(bstr1), std::wstring(bstr2));
         }
     };
 }
